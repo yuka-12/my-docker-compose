@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+
+  # workspace for using artisan commands in your local
+  workspace:
+    build: workspace
+    container_name: ${COMPOSE_PROJECT_NAME}_workspace
+    volumes:
+      - ${BASE_DIR}
+    command: bash
+    environment:
+      - STAGE=docker
+    depends_on:
+      - mysql
+      - cache
+
+  # php + webserver
+  apache:
+    build: apache
+    container_name: ${COMPOSE_PROJECT_NAME}_apache
+    volumes:
+      - ${BASE_DIR}
+    ports:
+      - 8090:80
+    environment:
+      - STAGE=docker
+
+  # DB in your local
+  mysql:
+    image: mysql:5.7
+    container_name: ${COMPOSE_PROJECT_NAME}_mysql
+    ports:
+      - '3307:3306'
+    environment:
+      - MYSQL_DATABASE=db
+      - MYSQL_USER=dbuser
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - ${COMPOSE_PROJECT_NAME}_mysql:/var/lib/mysql
+
+  # cache server
+  cache:
+    image: memcached
+    container_name: ${COMPOSE_PROJECT_NAME}_cache
+
+volumes:
+    MyApp_mysql:
+        driver: "local"
